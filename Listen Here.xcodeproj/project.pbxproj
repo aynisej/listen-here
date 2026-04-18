@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		CADBA5DF2F940ACE0063985A /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5DE2F940AB40063985A /* AppState.swift */; };
+		CADBA5E12F940E640063985A /* Track.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5E02F940E5F0063985A /* Track.swift */; };
+		CADBA5E32F94114C0063985A /* PlayerMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5E22F94113F0063985A /* PlayerMonitorService.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		CADBA5C22F9407EF0063985A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +33,9 @@
 		CADBA5B42F9407ED0063985A /* Listen Here.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Listen Here.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CADBA5C12F9407EF0063985A /* Listen HereTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Listen HereTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CADBA5CB2F9407EF0063985A /* Listen HereUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Listen HereUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CADBA5DE2F940AB40063985A /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		CADBA5E02F940E5F0063985A /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
+		CADBA5E22F94113F0063985A /* PlayerMonitorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerMonitorService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +84,9 @@
 		CADBA5AB2F9407ED0063985A = {
 			isa = PBXGroup;
 			children = (
+				CADBA5E22F94113F0063985A /* PlayerMonitorService.swift */,
+				CADBA5E02F940E5F0063985A /* Track.swift */,
+				CADBA5DE2F940AB40063985A /* AppState.swift */,
 				CADBA5B62F9407ED0063985A /* Listen Here */,
 				CADBA5C42F9407EF0063985A /* Listen HereTests */,
 				CADBA5CE2F9407EF0063985A /* Listen HereUITests */,
@@ -236,6 +248,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CADBA5DF2F940ACE0063985A /* AppState.swift in Sources */,
+				CADBA5E32F94114C0063985A /* PlayerMonitorService.swift in Sources */,
+				CADBA5E12F940E640063985A /* Track.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

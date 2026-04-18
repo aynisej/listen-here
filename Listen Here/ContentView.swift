@@ -8,17 +8,34 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var appState: AppState
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
+        VStack(spacing: 12) {
+            Image(systemName: "music.note")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Text("Listen Here")
+                .font(.title)
+            if let track = appState.currentTrack
+            {
+                Text("Сейчас играет:")
+                Text("\(track.artist) — \(track.title)")
+                    .font(.headline)
+            }
+            Text(appState.statusText)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .padding()
         }
-        .padding()
     }
+    
 }
 
-#Preview {
-    ContentView()
+#if DEBUG
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+            .environmentObject(AppState())
+    }
 }
+#endif
