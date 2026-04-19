@@ -44,12 +44,33 @@ final class LastFMAPI {
         params["api_sig"] = signature
         params["format"] = "json"
 
-        var components = URLComponents(string: "https://ws.audioscrobbler.com/2.0/")!
-        components.queryItems = params.map { URLQueryItem(name: $0.key, value: $0.value) }
+        // Build POST body (URL-encoded)
+        let bodyString = params
+            .map { key, value in
+                let encodedKey = key.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? key
+                let encodedValue = value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? value
+                return "\(encodedKey)=\(encodedValue)"
+            }
+            .joined(separator: "&")
 
-        let (data, _) = try await makeSession().data(from: components.url!)
+        var request = URLRequest(url: URL(string: "https://ws.audioscrobbler.com/2.0/")!)
+        request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.httpBody = bodyString.data(using: .utf8)
+
+        let (data, _) = try await makeSession().data(for: request)
+
+        // Debug raw response
+        if let raw = String(data: data, encoding: .utf8) {
+            print("📦 RAW SESSION RESPONSE:", raw)
+        }
 
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+
+        if let error = json?["error"], let message = json?["message"] {
+            print("❌ LastFM API ERROR:", error, message)
+        }
+
         let session = json?["session"] as? [String: Any]
         guard let key = session?["key"] as? String else {
             throw NSError(domain: "LastFM", code: -2)

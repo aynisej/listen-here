@@ -8,13 +8,6 @@ struct Listen_HereApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
-                .onOpenURL { url in
-                    print("CALLBACK:", url)
-                    Task {
-                        await LastFmService.shared.handleCallback(url: url)
-                    }
-                }
-            }
         }
     }
-
+}

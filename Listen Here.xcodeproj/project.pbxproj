@@ -42,22 +42,9 @@
 		CADBA5E62F9422200063985A /* LastFMAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMAPI.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		CADBA5E92F9438530063985A /* Exceptions for "Listen Here" folder in "Listen Here" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"Listen-Here-Info.plist",
-			);
-			target = CADBA5B32F9407ED0063985A /* Listen Here */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CADBA5B62F9407ED0063985A /* Listen Here */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				CADBA5E92F9438530063985A /* Exceptions for "Listen Here" folder in "Listen Here" target */,
-			);
 			path = "Listen Here";
 			sourceTree = "<group>";
 		};
@@ -456,7 +443,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "prolapse-working.Listen-Here";
+				PRODUCT_BUNDLE_IDENTIFIER = com.listenhere.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -499,7 +486,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "prolapse-working.Listen-Here";
+				PRODUCT_BUNDLE_IDENTIFIER = com.listenhere.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
