@@ -11,6 +11,17 @@ struct ContentView: View {
     @EnvironmentObject var appState: AppState
     var body: some View {
         VStack(spacing: 12) {
+            Button("Login Last.fm") {
+                Task {
+                    do {
+                        let token = try await LastFMAPI.shared.getToken()
+                        print("TOKEN:", token)
+                        LastFmService.shared.openAuth(token: token)
+                    } catch {
+                        print("Auth error:", error)
+                    }
+                }
+            }
             Image(systemName: "music.note")
                 .imageScale(.large)
                 .foregroundStyle(.tint)

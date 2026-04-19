@@ -10,6 +10,8 @@
 		CADBA5DF2F940ACE0063985A /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5DE2F940AB40063985A /* AppState.swift */; };
 		CADBA5E12F940E640063985A /* Track.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5E02F940E5F0063985A /* Track.swift */; };
 		CADBA5E32F94114C0063985A /* PlayerMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5E22F94113F0063985A /* PlayerMonitorService.swift */; };
+		CADBA5E52F941D270063985A /* LastFmService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5E42F941D160063985A /* LastFmService.swift */; };
+		CADBA5E72F9422310063985A /* LastFMAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5E62F9422200063985A /* LastFMAPI.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,11 +38,26 @@
 		CADBA5DE2F940AB40063985A /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		CADBA5E02F940E5F0063985A /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
 		CADBA5E22F94113F0063985A /* PlayerMonitorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerMonitorService.swift; sourceTree = "<group>"; };
+		CADBA5E42F941D160063985A /* LastFmService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmService.swift; sourceTree = "<group>"; };
+		CADBA5E62F9422200063985A /* LastFMAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMAPI.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CADBA5E92F9438530063985A /* Exceptions for "Listen Here" folder in "Listen Here" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Listen-Here-Info.plist",
+			);
+			target = CADBA5B32F9407ED0063985A /* Listen Here */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CADBA5B62F9407ED0063985A /* Listen Here */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CADBA5E92F9438530063985A /* Exceptions for "Listen Here" folder in "Listen Here" target */,
+			);
 			path = "Listen Here";
 			sourceTree = "<group>";
 		};
@@ -84,6 +101,8 @@
 		CADBA5AB2F9407ED0063985A = {
 			isa = PBXGroup;
 			children = (
+				CADBA5E62F9422200063985A /* LastFMAPI.swift */,
+				CADBA5E42F941D160063985A /* LastFmService.swift */,
 				CADBA5E22F94113F0063985A /* PlayerMonitorService.swift */,
 				CADBA5E02F940E5F0063985A /* Track.swift */,
 				CADBA5DE2F940AB40063985A /* AppState.swift */,
@@ -249,7 +268,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				CADBA5DF2F940ACE0063985A /* AppState.swift in Sources */,
+				CADBA5E52F941D270063985A /* LastFmService.swift in Sources */,
 				CADBA5E32F94114C0063985A /* PlayerMonitorService.swift in Sources */,
+				CADBA5E72F9422310063985A /* LastFMAPI.swift in Sources */,
 				CADBA5E12F940E640063985A /* Track.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -415,9 +436,20 @@
 				DEVELOPMENT_TEAM = C4PV6RRM6Z;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Listen-Here-Info.plist";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -447,9 +479,20 @@
 				DEVELOPMENT_TEAM = C4PV6RRM6Z;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Listen-Here-Info.plist";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
