@@ -36,7 +36,7 @@ final class AppState: ObservableObject {
                 self.statusText = "Играет (ожидание скроббла)"
             }
 
-            // ⏱️ пока берём фикс 30 секунд
+            //  пока берём фикс 30 секунд
             self.scrobbleTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: false) { [weak self] _ in
                 DispatchQueue.main.async {
                     if LastFmService.shared.isLoggedIn {
@@ -44,7 +44,7 @@ final class AppState: ObservableObject {
                         print("SCROBBLE:", track.artist, "-", track.title)
                     } else {
                         self?.statusText = "Не залогинен в Last.fm"
-                        print("❌ Not logged in, skip scrobble")
+                        print(" Not logged in, skip scrobble")
                     }
                 }
             }
