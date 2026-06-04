@@ -33,30 +33,30 @@ final class LastFmService {
             let apiKey = "2fc0217be36469e4726dbeb8481e4c34"
 
             guard let url = URL(string: "https://www.last.fm/api/auth/?api_key=\(apiKey)&token=\(token)") else {
-                print("❌ Bad URL")
+                print(" Bad URL")
                 return
             }
 
             NSWorkspace.shared.open(url)
 
         } catch {
-            print("❌ Auth error:", error)
+            print(" Auth error:", error)
         }
     }
 
     func finishLogin() async {
         guard let token = pendingToken else {
-            print("❌ No pending token")
+            print(" No pending token")
             return
         }
 
         do {
             let session = try await LastFMAPI.shared.getSession(token: token)
-            print("✅ SESSION:", session)
+            print(" SESSION:", session)
             sessionKey = session
             pendingToken = nil
         } catch {
-            print("❌ Session error:", error)
+            print(" Session error:", error)
         }
     }
 }
