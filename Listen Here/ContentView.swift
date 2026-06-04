@@ -13,7 +13,7 @@ struct ContentView: View {
             }
 
             if LastFmService.shared.isLoggedIn {
-                Text("Logged in to Last.fm ✅")
+                Text("Logged in to Last.fm ")
                     .foregroundColor(.green)
             } else if LastFmService.shared.hasPendingToken {
                 Text("Authorization pending…")
