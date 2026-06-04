@@ -62,13 +62,13 @@ final class LastFMAPI {
 
         // Debug raw response
         if let raw = String(data: data, encoding: .utf8) {
-            print("📦 RAW SESSION RESPONSE:", raw)
+            print(" RAW SESSION RESPONSE:", raw)
         }
 
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
 
         if let error = json?["error"], let message = json?["message"] {
-            print("❌ LastFM API ERROR:", error, message)
+            print(" LastFM API ERROR:", error, message)
         }
 
         let session = json?["session"] as? [String: Any]
