@@ -11,7 +11,7 @@ struct ContentView: View {
     @EnvironmentObject private var appState: AppState
     @Environment(\.openWindow) private var openWindow
     @ObservedObject private var lastFM = LastFmService.shared
-    @State private var selection: ListenHerePage? = .scrobbler
+    @State private var selection: ListenHerePage = .scrobbler
     @State private var didAutoOpenLogin = false
 
     private let accent = Color(red: 0.82, green: 0.13, blue: 0.20)
@@ -30,9 +30,11 @@ struct ContentView: View {
         .tint(accent)
         .frame(minWidth: 820, minHeight: 600)
         .onAppear {
-            guard !lastFM.isLoggedIn, !didAutoOpenLogin else { return }
-            didAutoOpenLogin = true
-            openWindow(id: "lastfm-login")
+            Task { @MainActor in
+                guard !lastFM.isLoggedIn, !didAutoOpenLogin else { return }
+                didAutoOpenLogin = true
+                openWindow(id: "lastfm-login")
+            }
         }
     }
 
@@ -50,9 +52,18 @@ struct ContentView: View {
             }
             .padding(.horizontal, 16).padding(.top, 20).padding(.bottom, 24)
 
-            List(selection: $selection) {
+            List {
                 ForEach(ListenHerePage.allCases) { page in
-                    Label(page.rawValue, systemImage: page.symbol).tag(page as ListenHerePage?)
+                    HStack {
+                        Label(page.rawValue, systemImage: page.symbol)
+                        Spacer()
+                        if selection == page {
+                            Image(systemName: "checkmark")
+                                .foregroundStyle(accent)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture { selection = page }
                 }
             }
             .listStyle(.sidebar)
