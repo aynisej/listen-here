@@ -90,7 +90,19 @@ To enable logging-based monitoring:
 
 ## Installation
 
-Download the latest `Listen Here.dmg` from the releases page:
+Download the installers from the [releases page](https://github.com/aynisej/listen-here/releases/tag/v1.0.0):
+
+### Option 1: Complete Installer (Recommended)
+Download `Complete-Installer.dmg` for an all-in-one installation:
+1. Open the DMG file
+2. Run the installer which will open both app installers
+3. Drag Listen Here to Applications
+4. Run Yandex Music IPC Bridge Installer to modify Yandex Music
+5. Restart both applications
+
+### Option 2: Separate Installers
+- **Listen Here.app**: Open `Listen.Here.dmg`, drag "Listen Here" to Applications
+- **Yandex Music IPC Bridge**: Open `YandexMusicIPC-Installer.dmg` and run the installer
 
 1. Open the DMG file
 2. Drag "Listen Here" to your Applications folder
