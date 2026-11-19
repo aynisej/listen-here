@@ -6,3 +6,15 @@ Listen Here.app/
 *.xcuserdatad/
 *.swp
 *~
+
+# Temporary build artifacts
+Complete-Installer.app/
+YandexMusicMod/
+*.dmghdiutil
+
+# macOS artifacts
+.DS_Store
+*.dmg~
+
+# Test files
+test_*.swift
