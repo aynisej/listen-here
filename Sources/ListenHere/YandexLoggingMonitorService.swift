@@ -259,13 +259,21 @@ final class YandexLoggingMonitorService {
         defer { lock.unlock() }
         guard timer == nil else { return }
         let logSourceCopy = logSource
+        let callbackCopy = callback
         timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [callback] _ in
-            let result = readFromLog(logSourceCopy)
-            Task { @MainActor [callback] in
-                callback?(result)
+            DispatchQueue.global(qos: .background).async {
+                let result = readFromLog(logSourceCopy)
+                Task { @MainActor [callback] in
+                    callback?(result)
+                }
             }
         }
-        poll()
+        DispatchQueue.global(qos: .background).async {
+            let result = readFromLog(logSourceCopy)
+            Task { @MainActor [callbackCopy] in
+                callbackCopy?(result)
+            }
+        }
     }
     
     func stop() {
@@ -276,13 +284,6 @@ final class YandexLoggingMonitorService {
         lock.unlock()
         Task { @MainActor [cb] in
             cb?(.appNotRunning)
-        }
-    }
-    
-    private func poll() {
-        let result = readFromLog(logSource)
-        Task { @MainActor [callback = self.callback] in
-            callback?(result)
         }
     }
 }
