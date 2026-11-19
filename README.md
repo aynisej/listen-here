@@ -1,55 +1,125 @@
 # Listen Here
 
-Listen Here is a macOS Last.fm scrobbler with a native SwiftUI interface. It reads the currently playing track from the Yandex Music desktop app and submits it to Last.fm after the normal scrobble threshold.
+Listen Here is a macOS Last.fm scrobbler with a native SwiftUI interface. It reads the currently playing track from Yandex Music and submits it to Last.fm after the normal scrobble threshold.
 
-## Yandex Music support
+## Scrobbling Methods
 
-The current implementation reads the visible player metadata from Yandex Music's macOS Accessibility tree. It checks the title, artist, album, play state, elapsed position, and duration. It does not capture, save, or upload audio.
+Listen Here supports three scrobbling methods, selectable in the Settings panel:
 
-The app runs outside the macOS App Sandbox because Apple does not support cross-application Accessibility APIs from sandboxed apps. This build is intended for direct distribution, not the Mac App Store.
+### 1. System Now Playing (Recommended for Yandex Music via AirPlay/Bluetooth/Wi-Fi)
 
-### Alternative: Logging-based monitoring
+This is the most reliable method. It uses Apple's `MPNowPlayingInfoCenter` to read system-wide "Now Playing" information, which works regardless of how Yandex Music is playing (desktop app, AirPlay, Bluetooth, or Wi-Fi).
 
-Since Yandex Music doesn't provide a public API, Listen Here also supports **logging-based monitoring** as a fallback/coping mechanism:
+**How it works:**
+- Monitors the system's now playing info via `MPNowPlayingInfoCenter.default().nowPlayingInfo`
+- Works with Yandex Music, Spotify, Apple Music, and any app that publishes now playing info
+- Detects playback state through `playbackRate` value
 
-1. **Primary method (default):** Accessibility API - reads the Yandex Music player window directly
-2. **Fallback method:** System log monitoring - parses log entries from Yandex Music process
+**Pros:**
+- Works with AirPlay/Bluetooth/Wi-Fi playback
+- No Accessibility permissions required
+- Most reliable for Yandex Music streamed content
+
+**Cons:**
+- Requires macOS 11+
+
+### 2. Accessibility API (For desktop Yandex Music)
+
+The default method when selecting "Accessibility" monitoring. Reads the visible player metadata directly from Yandex Music's window using the Accessibility API.
+
+**How it works:**
+- Uses `AXUIElementCopyAttributeValue` to read Yandex Music's player window
+- Parses title, artist, album, position, duration, and play state
+- Works with the Yandex Music desktop application
+
+**Pros:**
+- Works for standalone desktop playback
+- No need for Yandex Music to log track info
+
+**Cons:**
+- Requires Accessibility permissions from System Settings
+- May break if Yandex Music UI changes
+
+### 3. Logging-based Monitoring
+
+A fallback mechanism that parses system logs or log files from Yandex Music.
+
+**How it works:**
+- Reads macOS unified logs via the `log` command
+- Parses JSON or text log entries for track metadata
+- Can also read from custom log files specified in settings
+
+**Pros:**
+- Works when Accessibility API is blocked
+- Useful as a fallback when other methods fail
+
+**Cons:**
+- May not work if Yandex Music doesn't emit track events to logs
+- Requires Yandex Music to use structured logging
+
+## Enabling Logging Mode
 
 To enable logging-based monitoring:
-- Go to **Settings** in the app
-- Enable **"Использовать мониторинг через логи"** (Use logging monitor)
-- This is useful when Accessibility permissions fail or when Yandex Music UI changes
+1. Go to **Settings** in the app
+2. Enable **"Использовать мониторинг через логи"** (Use logging monitor)
+3. Optionally specify a custom log file path
 
-The logging monitor attempts to:
-- Read system logs via the `log` command (macOS unified logging)
-- Parse log content for track metadata (supports both JSON and text formats)
-- Work even when Accessibility API is blocked
-
-**Note:** Logging-based monitoring may not work if Yandex Music doesn't emit track events to system logs. It requires Yandex Music to use structured logging.
-
-To enable debug logging in Yandex Music (may require Terminal flags):
-```bash
-# Example: launch Yandex Music with debug output
-/Applications/Yandex\ Music.app/Contents/MacOS/Yandex\ Music --debug > ~/yandex-music.log 2>&1
+**Note:** Logging-based monitoring will auto-create a log file at:
 ```
+~/Library/Caches/YandexMusic/logs/current.log
+```
+
+## Installation
+
+Download the latest `Listen Here.dmg` from the releases page:
+
+1. Open the DMG file
+2. Drag "Listen Here" to your Applications folder
+3. Launch the app
+
+## Last.fm Setup
 
 To enable Yandex Music scrobbling:
 
 1. Connect a Last.fm account in Settings. The app opens Last.fm authorization in the browser; return to the app and finish the login.
 2. Turn on **Scrobbling**.
-3. Allow Listen Here under **System Settings → Privacy & Security → Accessibility**. macOS needs this permission to read the Yandex Music player window.
-4. Play music in the Yandex Music desktop app.
+3. Select your preferred scrobbling method in Settings:
+   - **System Now Playing** - for AirPlay/Bluetooth/Wi-Fi playback
+   - **Accessibility** - for desktop app playback (may require permission)
+   - **Logging** - fallback method for when others fail
 
-Tracks shorter than 30 seconds are ignored. A scrobble is submitted after half the track or four minutes, whichever comes first. Network failures are kept in a local queue and retried after connection returns.
+For Accessibility method:
+4. Allow Listen Here under **System Settings → Privacy & Security → Accessibility**
 
-## Last.fm behavior
+## Scrobbling Behavior
 
-- OAuth-style browser sign-in using Last.fm's token/session flow.
-- Session key stored in the macOS Keychain.
-- `track.updateNowPlaying` when a new Yandex track starts.
-- `track.scrobble` after the listening threshold.
-- Recent successful submissions and pending count in the dashboard.
+- Tracks shorter than 30 seconds are ignored
+- A scrobble is submitted after half the track duration or 4 minutes, whichever comes first
+- Network failures are kept in a local queue and retried automatically
+- Recent successful submissions and pending count displayed in the dashboard
+
+## Last.fm API Integration
+
+- OAuth-style browser sign-in using Last.fm's token/session flow
+- Session key stored in the macOS Keychain
+- `track.updateNowPlaying` when a new track starts
+- `track.scrobble` after the listening threshold
 
 ## Build
 
-Open `Listen Here.xcodeproj` in Xcode and build the **Listen Here** scheme for macOS.
+```bash
+# Build using Swift Package Manager
+swift build -c release
+
+# Or open in Xcode
+open Listen\ Here.xcodeproj
+```
+
+## Requirements
+
+- macOS 14.0 or later
+- Swift 6.0
+
+## License
+
+This project is provided as-is for personal use. Not intended for commercial distribution.

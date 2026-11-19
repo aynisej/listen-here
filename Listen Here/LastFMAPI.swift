@@ -13,7 +13,11 @@ struct LastFMScrobble {
     let timestamp: Int
 }
 
+// LastFMAPI is MainActor-isolated because it's used from the UI context
+// All async methods dispatch to background automatically via URLSession
+@MainActor
 final class LastFMAPI {
+    // Singleton instance accessible from MainActor context
     static let shared = LastFMAPI()
 
     // Desktop clients need an API key/secret to sign Last.fm write requests.

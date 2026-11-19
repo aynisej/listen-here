@@ -10,6 +10,7 @@ import Combine
 /// Note: This requires Yandex Music to be configured to write to this log file,
 /// which may require custom launch arguments or configuration.
 
+@MainActor
 final class LoggingFileManager: ObservableObject {
     static let shared = LoggingFileManager()
     

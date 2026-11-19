@@ -10,7 +10,7 @@ struct YandexPlayback: Equatable {
     let position: Double
     let isPlaying: Bool
 
-    var identity: String { "\(artist.lowercased())\u{1f}\(title.lowercased())" }
+    var identity: String { "\(artist.lowercased())\u{001F}\(title.lowercased())" }
 }
 
 enum YandexMonitorResult {
@@ -21,24 +21,29 @@ enum YandexMonitorResult {
     case noTrackMetadata
 }
 
+@MainActor
 final class YandexMusicMonitorService {
     var onUpdate: ((YandexMonitorResult) -> Void)?
     private var timer: Timer?
     private var isPolling = false
-
+    
     static var hasAccessibilityPermission: Bool { AXIsProcessTrusted() }
 
     static func requestAccessibilityPermission() -> Bool {
-        let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
-        return AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
+        // Using string literal as key - works with system API
+        return AXIsProcessTrustedWithOptions(["kAXTrustedCheckOptionPrompt": true] as CFDictionary)
     }
 
     func start() {
         guard timer == nil else { return }
         timer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
-            self?.poll()
+            Task { @MainActor in
+                await self?.poll()
+            }
         }
-        poll()
+        Task { @MainActor in
+            await self?.poll()
+        }
     }
 
     func stop() {
@@ -47,16 +52,12 @@ final class YandexMusicMonitorService {
         onUpdate?(.appNotRunning)
     }
 
-    private func poll() {
+    private func poll() async {
         guard !isPolling else { return }
         isPolling = true
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            let result = Self.readYandexPlayer()
-            DispatchQueue.main.async {
-                self?.isPolling = false
-                self?.onUpdate?(result)
-            }
-        }
+        let result = await Self.readYandexPlayer()
+        isPolling = false
+        onUpdate?(result)
     }
 
     private struct ElementInfo {

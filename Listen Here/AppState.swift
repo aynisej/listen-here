@@ -30,9 +30,9 @@ final class AppState: ObservableObject {
     let lastFM = LastFmService.shared
 
     private let yandexMonitor = YandexMusicMonitorService()
-    private let loggingMonitor = YandexLoggingMonitorService()
     private let systemNowPlayingMonitor = SystemNowPlayingMonitor()
     private let legacyMonitor = PlayerMonitorService()
+    private var loggingMonitor: YandexLoggingMonitorService?
     private var activeIdentity: String?
     private var currentStartedAt: Int = 0
     private var listenedSeconds = 0.0
@@ -66,11 +66,6 @@ final class AppState: ObservableObject {
         yandexMonitor.onUpdate = { [weak self] result in
             guard let self else { return }
             self.handleYandexResult(result)
-        }
-
-        loggingMonitor.onUpdate = { [weak self] result in
-            guard let self else { return }
-            self.handleLoggingResult(result)
         }
 
         systemNowPlayingMonitor.onUpdate = { [weak self] result in
@@ -112,7 +107,7 @@ final class AppState: ObservableObject {
     private func updateMonitoring() {
         guard isScrobblingEnabled else {
             yandexMonitor.stop()
-            loggingMonitor.stop()
+            loggingMonitor?.stop()
             systemNowPlayingMonitor.stop()
             legacyMonitor.stop()
             isPlaying = false
@@ -121,7 +116,7 @@ final class AppState: ObservableObject {
         }
         guard lastFM.isLoggedIn else {
             yandexMonitor.stop()
-            loggingMonitor.stop()
+            loggingMonitor?.stop()
             systemNowPlayingMonitor.stop()
             legacyMonitor.stop()
             statusText = "Подключите Last.fm, чтобы начать скробблинг"
@@ -130,7 +125,7 @@ final class AppState: ObservableObject {
 
         // Stop all monitors first
         yandexMonitor.stop()
-        loggingMonitor.stop()
+        loggingMonitor?.stop()
         systemNowPlayingMonitor.stop()
         legacyMonitor.stop()
 
@@ -156,12 +151,13 @@ final class AppState: ObservableObject {
             needsAccessibilityPermission = false
             if let logFileURL = LoggingFileManager.shared.ensureLoggingFile() {
                 print("Monitoring log file at: \(logFileURL.path)")
-                loggingMonitor = YandexLoggingMonitorService(logSource: logFileURL.path)
-                loggingMonitor.onUpdate = { [weak self] result in
+                let monitor = YandexLoggingMonitorService(logSource: logFileURL.path)
+                monitor.onUpdate = { [weak self] result in
                     guard let self else { return }
                     self.handleLoggingResult(result)
                 }
-                loggingMonitor.start()
+                loggingMonitor = monitor
+                loggingMonitor?.start()
                 statusText = "Мониторю файл логов Яндекс Музыки…"
             } else {
                 statusText = "Не удалось создать файл логов"

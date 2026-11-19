@@ -5,7 +5,7 @@ import Security
 
 @MainActor
 final class LastFmService: ObservableObject {
-    static let shared = LastFmService()
+    @preconcurrency static let shared = LastFmService()
 
     @Published private(set) var username: String?
     @Published private(set) var pendingToken: String?

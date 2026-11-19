@@ -15,7 +15,7 @@ struct SystemNowPlaying: Equatable {
     let position: Double
     let isPlaying: Bool
     
-    var identity: String { "\(artist.lowercased())\u{1f}\(title.lowercased())" }
+    var identity: String { "\(artist.lowercased())\u{001F}\(title.lowercased())" }
 }
 
 enum SystemNowPlayingResult {
@@ -25,19 +25,24 @@ enum SystemNowPlayingResult {
     case permissionDenied
 }
 
+@MainActor
 final class SystemNowPlayingMonitor: ObservableObject {
     var onUpdate: ((SystemNowPlayingResult) -> Void)?
     private var timer: Timer?
     private var isPolling = false
     
-    private let center = MPNowPlayingInfoCenter.defaultCenter()
+    private let center = MPNowPlayingInfoCenter.default()
     
     func start() {
         guard timer == nil else { return }
         timer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
-            self?.poll()
+            Task { @MainActor in
+                await self?.poll()
+            }
         }
-        poll()
+        Task { @MainActor in
+            await self?.poll()
+        }
     }
     
     func stop() {
@@ -46,17 +51,12 @@ final class SystemNowPlayingMonitor: ObservableObject {
         onUpdate?(.appNotRunning)
     }
     
-    private func poll() {
+    private func poll() async {
         guard !isPolling else { return }
         isPolling = true
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            guard let self = self else { return }
-            let result = self.readNowPlaying()
-            DispatchQueue.main.async {
-                self.isPolling = false
-                self.onUpdate?(result)
-            }
-        }
+        let result = readNowPlaying()
+        isPolling = false
+        onUpdate?(result)
     }
     
     private func readNowPlaying() -> SystemNowPlayingResult {
@@ -64,16 +64,25 @@ final class SystemNowPlayingMonitor: ObservableObject {
             return .noData
         }
         
-        guard let title = info[MPNowPlayingInfoPropertyTitle] as? String,
+        // Use string-based dictionary keys for macOS compatibility
+        // MPNowPlayingInfoProperty* constants are iOS-specific
+        let titleKey = "MPNowPlayingInfoPropertyTitle" as NSString
+        let artistKey = "MPNowPlayingInfoPropertyArtist" as NSString
+        let albumKey = "MPNowPlayingInfoPropertyAlbumTitle" as NSString
+        let durationKey = "MPNowPlayingInfoPropertyDuration" as NSString
+        let positionKey = "MPNowPlayingInfoPropertyElapsedPlaybackTime" as NSString
+        let rateKey = "MPNowPlayingInfoPropertyPlaybackRate" as NSString
+        
+        guard let title = info[titleKey as String] as? String,
               !title.isEmpty else {
             return .noData
         }
         
-        let artist = info[MPNowPlayingInfoPropertyArtist] as? String ?? ""
-        let album = info[MPNowPlayingInfoPropertyAlbumTitle] as? String
-        let duration = (info[MPNowPlayingInfoPropertyDuration] as? NSNumber)?.doubleValue ?? 0
-        let position = (info[MPNowPlayingInfoPropertyElapsedPlaybackTime] as? NSNumber)?.doubleValue ?? 0
-        let playbackRate = (info[MPNowPlayingInfoPropertyPlaybackRate] as? NSNumber)?.doubleValue ?? 0
+        let artist = info[artistKey as String] as? String ?? ""
+        let album = info[albumKey as String] as? String
+        let duration = (info[durationKey as String] as? NSNumber)?.doubleValue ?? 0
+        let position = (info[positionKey as String] as? NSNumber)?.doubleValue ?? 0
+        let playbackRate = (info[rateKey as String] as? NSNumber)?.doubleValue ?? 0
         let isPlaying = playbackRate > 0
         
         guard duration > 0 else {

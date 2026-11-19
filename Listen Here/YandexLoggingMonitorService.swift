@@ -22,7 +22,7 @@ struct YandexLogPlayback: Equatable {
     let position: Double
     let isPlaying: Bool
     
-    var identity: String { "\(artist.lowercased())\u{1f}\(title.lowercased())" }
+    var identity: String { "\(artist.lowercased())\u{001F}\(title.lowercased())" }
 }
 
 enum YandexLogMonitorResult {
@@ -157,8 +157,6 @@ final class YandexLoggingMonitorService {
     /// Method 2: Read from a file-based log
     /// This requires Yandex Music to write to a log file
     private func readFromLogFile() -> YandexLogPlayback? {
-        // Check if log file exists
-        let logURL = URL(fileURLWithPath: logSource)
         guard FileManager.default.fileExists(atPath: logSource) else {
             // Try the default Yandex Music log location
             let cacheDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
@@ -239,13 +237,13 @@ final class YandexLoggingMonitorService {
     /// Parse text-formatted log entry
     private func tryParseTextLog(_ line: String) -> YandexLogPlayback? {
         // Pattern 1: "Artist - Title (album)"
-        let artistTitlePattern = #"(\w[\w\s']+?)\s*[-–]\s*(.+?)(?:\s*\(([^)]+)\))?$"#
+        let artistTitlePattern = "(\\w[\\w\\s']+?)\\s*[-–]\\s*(.+?)(?:\\s*\\(([^)]+)\\))?$"
         
         // Pattern 2: "track: Artist - Title" or "now playing: Artist - Title"
-        let trackPattern = #"(?:track|now_playing|now playing):\s*(.+)$"#i
+        let trackPattern = "(?:track|now_playing|now playing):\\s*(.+)$"
         
         // Pattern 3: Duration format "Artist - Title - Duration: X:YY"
-        let durationPattern = #"(.+?)\s*-\s*(.+?)\s*[-–]\s*(\d+[:\d]+)$"#
+        let durationPattern = "(.+?)\\s*-\\s*(.+?)\\s*[-–]\\s*(\\d+[:\\d]+)$"
         
         // Try different patterns
         let patterns = [artistTitlePattern, trackPattern, durationPattern]
@@ -297,22 +295,23 @@ final class YandexLoggingMonitorService {
     /// Parse duration string like "3:45" or "3 мин 45 сек"
     private func parseDurationString(_ text: String) -> Int {
         // Russian format: "3 минут 45 секунд" or "3 мин 45 сек"
-        let russianPattern = #"(\d+)\s*(?:минут[а-y]?|мин)\s*(?:(\d+)\s*(?:секунд[а-y]?|сек)?)?"#
+        let russianPattern = "(\\d+)\\s*(?:минут[а-я]?|мин)\\s*(?:(\\d+)\\s*(?:секунд[а-я]?|сек)?)?"
         
         // Standard format: "3:45"
-        let standardPattern = #"(\d+)[:\s](\d+)"#
+        let standardPattern = "(\\d+)[:\\s](\\d+)"
         
         for pattern in [russianPattern, standardPattern] {
             if let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) {
                 let range = NSRange(text.startIndex..., in: text)
-                if let match = regex.firstMatch(in: text, range: range) {
-                    if match.numberOfRanges >= 2 {
-                        let minutes = (match.range(at: 1).location >= 0) ? 
-                            (Int(text[Range(match.range(at: 1), in: text)!]) ?? 0) : 0
-                        let seconds = (match.range(at: 2).location >= 0) ? 
-                            (Int(text[Range(match.range(at: 2), in: text)!]) ?? 0) : 0
-                        return minutes * 60 + seconds
-                    }
+                if let match = regex.firstMatch(in: text, range: range),
+                   match.numberOfRanges >= 2 {
+                    let minutesRange = Range(match.range(at: 1), in: text)
+                    let secondsRange = Range(match.range(at: 2), in: text)
+                    
+                    let minutes = minutesRange.map { Int(text[$0]) ?? 0 } ?? 0
+                    let seconds = secondsRange.map { Int(text[$0]) ?? 0 } ?? 0
+                    
+                    return minutes * 60 + seconds
                 }
             }
         }
@@ -326,13 +325,5 @@ final class YandexLoggingMonitorService {
             return nil
         }
         return parseLogOutput(content)
-    }
-}
-
-// MARK: - Extension for string parsing
-private extension String {
-    func parsingYandexLog() -> YandexLogPlayback? {
-        // Implementation would go here
-        return nil
     }
 }
