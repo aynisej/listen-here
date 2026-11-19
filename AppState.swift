@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import AppKit
+import MediaPlayer
 
 @MainActor
 final class AppState: ObservableObject {
@@ -17,14 +18,20 @@ final class AppState: ObservableObject {
         }
     }
     @Published var needsAccessibilityPermission = false
-    @Published var useLoggingMonitor = false // New: use logging-based monitoring as fallback
+    @Published var scrobblingMethod: ScrobblingMethod {
+        didSet {
+            UserDefaults.standard.set(scrobblingMethod.rawValue, forKey: "listenhere_scrobbling_method")
+            updateMonitoring()
+        }
+    }
     @Published var recentScrobbles: [String] = []
     @Published var submittedCount = 0
 
     let lastFM = LastFmService.shared
 
     private let yandexMonitor = YandexMusicMonitorService()
-    private let loggingMonitor = YandexLoggingMonitorService() // New: fallback logging monitor
+    private let loggingMonitor = YandexLoggingMonitorService()
+    private let systemNowPlayingMonitor = SystemNowPlayingMonitor()
     private let legacyMonitor = PlayerMonitorService()
     private var activeIdentity: String?
     private var currentStartedAt: Int = 0
@@ -50,7 +57,7 @@ final class AppState: ObservableObject {
 
     init() {
         isScrobblingEnabled = UserDefaults.standard.object(forKey: "listenhere_scrobbling_enabled") as? Bool ?? false
-        useLoggingMonitor = UserDefaults.standard.bool(forKey: "listenhere_use_logging_monitor")
+        scrobblingMethod = ScrobblingMethod(rawValue: UserDefaults.standard.string(forKey: "listenhere_scrobbling_method") ?? ScrobblingMethod.accessibility.rawValue) ?? .accessibility
         pending = (try? JSONDecoder().decode([PendingScrobble].self,
                     from: UserDefaults.standard.data(forKey: "listenhere_pending_scrobbles") ?? Data())) ?? []
         recentScrobbles = UserDefaults.standard.stringArray(forKey: "listenhere_recent_scrobbles") ?? []
@@ -58,98 +65,25 @@ final class AppState: ObservableObject {
 
         yandexMonitor.onUpdate = { [weak self] result in
             guard let self else { return }
-            // If AX fails and logging fallback is enabled, try logging monitor
-            if case .cannotRead = result, self.useLoggingMonitor {
-                self.loggingMonitor.onUpdate?(self.loggingMonitorResultToYandex(result))
-            } else {
-                self.handleYandexResult(result)
-            }
+            self.handleYandexResult(result)
         }
-        
-        // New: handle logging monitor results
+
         loggingMonitor.onUpdate = { [weak self] result in
             guard let self else { return }
             self.handleLoggingResult(result)
         }
-        
+
+        systemNowPlayingMonitor.onUpdate = { [weak self] result in
+            guard let self else { return }
+            self.handleSystemNowPlayingResult(result)
+        }
+
         legacyMonitor.onTrackChange = { [weak self] track in
             guard let self, self.currentTrack == nil || self.activeIdentity == nil else { return }
             self.currentTrack = track
             self.statusText = "Найдено через плеер · Яндекс отслеживается отдельно"
         }
         updateMonitoring()
-    }
-    
-    /// Convert logging monitor result to Yandex monitor result
-    private func loggingMonitorResultToYandex(_ result: YandexLogMonitorResult) -> YandexMonitorResult? {
-        switch result {
-        case .track(let playback):
-            return .track(YandexPlayback(
-                title: playback.title,
-                artist: playback.artist,
-                album: playback.album,
-                duration: playback.duration,
-                position: playback.position,
-                isPlaying: playback.isPlaying
-            ))
-        case .appNotRunning:
-            // Return nil to indicate no track
-            return nil
-        default:
-            return nil
-        }
-    }
-    
-    /// Handle Yandex monitor results
-    private func handleYandexResult(_ result: YandexMonitorResult) {
-        switch result {
-        case .track(let playback):
-            self.receive(playback)
-        case .appNotRunning:
-            self.receive(nil)
-            self.statusText = "Яндекс Музыка не запущена"
-        case .cannotRead(let code):
-            self.needsAccessibilityPermission = true
-            self.isPlaying = false
-            self.statusText = "macOS отклонила чтение окна Яндекс Музыки (AX \(code)). Перезапустите Listen Here или проверьте разрешение."
-            // Try logging monitor as fallback
-            if useLoggingMonitor {
-                self.loggingMonitor.start()
-                self.statusText = "Пытаюсь прочитать через логгирование..."
-            }
-        case .noWindow:
-            self.isPlaying = false
-            self.statusText = "Не удалось получить окно Яндекс Музыки"
-        case .noTrackMetadata:
-            self.isPlaying = false
-            self.statusText = "Доступ к окну есть, но данные текущего трека не найдены"
-        }
-    }
-    
-    /// Handle logging monitor results
-    private func handleLoggingResult(_ result: YandexLogMonitorResult) {
-        switch result {
-        case .track(let playback):
-            self.receive(YandexPlayback(
-                title: playback.title,
-                artist: playback.artist,
-                album: playback.album,
-                duration: playback.duration,
-                position: playback.position,
-                isPlaying: playback.isPlaying
-            ))
-            self.statusText = "Яндекс Музыка (через логи) · данные получены"
-        case .appNotRunning:
-            self.receive(nil)
-            self.isPlaying = false
-            self.statusText = "Яндекс Музыка не запущена"
-        case .noData:
-            // No data via logging, keep current state
-            break
-        case .permissionDenied:
-            self.isPlaying = false
-            self.statusText = "Доступ к логам запрещён"
-        }
     }
 
     var accessibilitySettingsURL: URL? {
@@ -179,6 +113,7 @@ final class AppState: ObservableObject {
         guard isScrobblingEnabled else {
             yandexMonitor.stop()
             loggingMonitor.stop()
+            systemNowPlayingMonitor.stop()
             legacyMonitor.stop()
             isPlaying = false
             statusText = "Скробблинг выключен"
@@ -187,30 +122,59 @@ final class AppState: ObservableObject {
         guard lastFM.isLoggedIn else {
             yandexMonitor.stop()
             loggingMonitor.stop()
+            systemNowPlayingMonitor.stop()
             legacyMonitor.stop()
             statusText = "Подключите Last.fm, чтобы начать скробблинг"
             return
         }
-        if !YandexMusicMonitorService.hasAccessibilityPermission {
-            needsAccessibilityPermission = true
-            _ = YandexMusicMonitorService.requestAccessibilityPermission()
-            statusText = "Проверяю доступ к окну Яндекс Музыки…"
-        } else {
-            needsAccessibilityPermission = false
-        }
-        
-        // Start appropriate monitors based on settings
-        if useLoggingMonitor {
-            // Try logging monitor as primary fallback
-            loggingMonitor.start()
-            statusText = "Пытаюсь прочитать данные через логгирование Яндекс Музыки…"
-        } else {
-            // Use Accessibility API as primary method
+
+        // Stop all monitors first
+        yandexMonitor.stop()
+        loggingMonitor.stop()
+        systemNowPlayingMonitor.stop()
+        legacyMonitor.stop()
+
+        switch scrobblingMethod {
+        case .accessibility:
+            if !YandexMusicMonitorService.hasAccessibilityPermission {
+                needsAccessibilityPermission = true
+                _ = YandexMusicMonitorService.requestAccessibilityPermission()
+                statusText = "Проверяю доступ к окну Яндекс Музыки…"
+            } else {
+                needsAccessibilityPermission = false
+            }
             legacyMonitor.start()
             yandexMonitor.start()
             if YandexMusicMonitorService.hasAccessibilityPermission {
-                statusText = "Ищу Яндекс Музыку…"
+                statusText = "Ищу Яндекс Музыку (через Accessibility)…"
+            } else {
+                statusText = "Доступ к окну Яндекс Музыки заблокирован"
             }
+            LoggingFileManager.shared.stopLogging()
+
+        case .logging:
+            needsAccessibilityPermission = false
+            if let logFileURL = LoggingFileManager.shared.ensureLoggingFile() {
+                print("Monitoring log file at: \(logFileURL.path)")
+                loggingMonitor = YandexLoggingMonitorService(logSource: logFileURL.path)
+                loggingMonitor.onUpdate = { [weak self] result in
+                    guard let self else { return }
+                    self.handleLoggingResult(result)
+                }
+                loggingMonitor.start()
+                statusText = "Мониторю файл логов Яндекс Музыки…"
+            } else {
+                statusText = "Не удалось создать файл логов"
+            }
+
+        case .systemNowPlaying:
+            needsAccessibilityPermission = false
+            systemNowPlayingMonitor.start()
+            statusText = "Мониторю системный плеер (Control Center)…"
+            if !YandexMusicMonitorService.hasAccessibilityPermission {
+                _ = YandexMusicMonitorService.requestAccessibilityPermission()
+            }
+            yandexMonitor.start()
         }
         retryPendingScrobbles()
     }
@@ -317,6 +281,80 @@ final class AppState: ObservableObject {
     private func persistPending() {
         if let data = try? JSONEncoder().encode(pending) {
             UserDefaults.standard.set(data, forKey: "listenhere_pending_scrobbles")
+        }
+    }
+
+    /// Handle Yandex monitor results
+    private func handleYandexResult(_ result: YandexMonitorResult) {
+        switch result {
+        case .track(let playback):
+            self.receive(playback)
+        case .appNotRunning:
+            self.receive(nil)
+            self.statusText = "Яндекс Музыка не запущена"
+        case .cannotRead(let code):
+            self.needsAccessibilityPermission = true
+            self.isPlaying = false
+            self.statusText = "macOS отклонила чтение окна Яндекс Музыки (AX \(code)). Перезапустите Listen Here или проверьте разрешение."
+            if scrobblingMethod == .accessibility {
+                self.statusText = "Доступ к окну заблокирован. Попробуйте метод чтения логов."
+            }
+        case .noWindow:
+            self.isPlaying = false
+            self.statusText = "Не удалось получить окно Яндекс Музыки"
+        case .noTrackMetadata:
+            self.isPlaying = false
+            self.statusText = "Доступ к окну есть, но данные текущего трека не найдены"
+        }
+    }
+
+    /// Handle logging monitor results
+    private func handleLoggingResult(_ result: YandexLogMonitorResult) {
+        switch result {
+        case .track(let playback):
+            self.receive(YandexPlayback(
+                title: playback.title,
+                artist: playback.artist,
+                album: playback.album,
+                duration: playback.duration,
+                position: playback.position,
+                isPlaying: playback.isPlaying
+            ))
+            self.statusText = "Яндекс Музыка (через логи) · данные получены"
+        case .appNotRunning:
+            self.receive(nil)
+            self.isPlaying = false
+            self.statusText = "Яндекс Музыка не запущена"
+        case .noData:
+            break
+        case .permissionDenied:
+            self.isPlaying = false
+            self.statusText = "Доступ к логам запрещён"
+        }
+    }
+
+    /// Handle system Now Playing monitor results
+    private func handleSystemNowPlayingResult(_ result: SystemNowPlayingResult) {
+        switch result {
+        case .track(let playback):
+            self.receive(YandexPlayback(
+                title: playback.title,
+                artist: playback.artist,
+                album: playback.album,
+                duration: Int(playback.duration),
+                position: playback.position,
+                isPlaying: playback.isPlaying
+            ))
+            self.statusText = "Системный плеер · данные получены"
+        case .appNotRunning:
+            self.receive(nil)
+            self.isPlaying = false
+            self.statusText = "Яндекс Музыка не запущена"
+        case .noData:
+            break
+        case .permissionDenied:
+            self.isPlaying = false
+            self.statusText = "Доступ к системному плееру запрещён"
         }
     }
 }

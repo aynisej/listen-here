@@ -241,6 +241,34 @@ struct ContentView: View {
                     }
                 }
 
+                settingsSection("Метод скробблинга", symbol: "antenna.radiowaves.left.and.right") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Выберите способ получения информации о треке из Яндекс Музыки.")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Picker("Метод", selection: $appState.scrobblingMethod) {
+                            ForEach(ScrobblingMethod.allCases) { method in
+                                Text(method.displayName).tag(method)
+                            }
+                        }
+                        .pickerStyle(.inline)
+                        .labelsHidden()
+                        Text(appState.scrobblingMethod.description)
+                            .font(.caption).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if appState.scrobblingMethod == .logging {
+                            Divider()
+                            HStack(spacing: 8) {
+                                Image(systemName: "doc.text").foregroundStyle(accent)
+                                Text("Файл логов: \(LoggingFileManager.shared.currentLogPath() ?? "не создан")")
+                                    .font(.caption.monospaced())
+                                    .foregroundStyle(.secondary)
+                                    .textSelection(.enabled)
+                            }
+                        }
+                    }
+                }
+
                 settingsSection("Яндекс Музыка", symbol: "waveform") {
                     HStack(alignment: .top, spacing: 12) {
                         Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
