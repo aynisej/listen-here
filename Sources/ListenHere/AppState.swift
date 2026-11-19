@@ -14,14 +14,14 @@ final class AppState: ObservableObject {
     @Published var isScrobblingEnabled: Bool {
         didSet {
             UserDefaults.standard.set(isScrobblingEnabled, forKey: "listenhere_scrobbling_enabled")
-            updateMonitoring()
+            Task { @MainActor in await startMonitoring() }
         }
     }
     @Published var needsAccessibilityPermission = false
     @Published var scrobblingMethod: ScrobblingMethod {
         didSet {
             UserDefaults.standard.set(scrobblingMethod.rawValue, forKey: "listenhere_scrobbling_method")
-            updateMonitoring()
+            Task { @MainActor in await startMonitoring() }
         }
     }
     @Published var recentScrobbles: [String] = []
@@ -82,7 +82,7 @@ final class AppState: ObservableObject {
             self.currentTrack = track
             self.statusText = "Найдено через плеер · Яндекс отслеживается отдельно"
         }
-        updateMonitoring()
+        Task { @MainActor in await startMonitoring() }
     }
 
     var accessibilitySettingsURL: URL? {
@@ -92,7 +92,15 @@ final class AppState: ObservableObject {
     var pendingCount: Int { pending.count }
 
     func lastFMConnectionChanged() {
-        updateMonitoring()
+        // Restart with current settings on main actor
+        Task { @MainActor in
+            // Stop all first
+            yandexMonitor.stop()
+            loggingMonitor?.stop()
+            systemNowPlayingMonitor.stop()
+            legacyMonitor.stop()
+            await startMonitoring()
+        }
     }
 
     func requestAccessibilityPermission() {
@@ -100,7 +108,9 @@ final class AppState: ObservableObject {
             needsAccessibilityPermission = true
         } else {
             needsAccessibilityPermission = false
-            updateMonitoring()
+            Task { @MainActor in
+                await startMonitoring()
+            }
         }
     }
 
@@ -108,36 +118,23 @@ final class AppState: ObservableObject {
         if let accessibilitySettingsURL { NSWorkspace.shared.open(accessibilitySettingsURL) }
     }
 
-    private func updateMonitoring() {
-        guard isScrobblingEnabled else {
-            yandexMonitor.stop()
-            loggingMonitor?.stop()
-            systemNowPlayingMonitor.stop()
-            legacyMonitor.stop()
-            isPlaying = false
-            statusText = "Скробблинг выключен"
+    /// Start monitoring based on current settings
+    @MainActor private func startMonitoring() async {
+        guard isScrobblingEnabled, lastFM.isLoggedIn else {
+            // Reset to appropriate state
+            if !isScrobblingEnabled {
+                isPlaying = false
+                statusText = "Скробблинг выключен"
+            } else {
+                statusText = "Подключите Last.fm, чтобы начать скробблинг"
+            }
             return
         }
-        guard lastFM.isLoggedIn else {
-            yandexMonitor.stop()
-            loggingMonitor?.stop()
-            systemNowPlayingMonitor.stop()
-            legacyMonitor.stop()
-            statusText = "Подключите Last.fm, чтобы начать скробблинг"
-            return
-        }
-
-        // Stop all monitors first
-        yandexMonitor.stop()
-        loggingMonitor?.stop()
-        systemNowPlayingMonitor.stop()
-        legacyMonitor.stop()
 
         switch scrobblingMethod {
         case .accessibility:
             if !YandexMusicMonitorService.hasAccessibilityPermission {
                 needsAccessibilityPermission = true
-                // Don't auto-request permission - wait for user to request it
                 statusText = "Доступ к окну Яндекс Музыки заблокирован. Нажмите кнопку «Разрешить» в настройках."
             } else {
                 needsAccessibilityPermission = false
@@ -169,7 +166,6 @@ final class AppState: ObservableObject {
             needsAccessibilityPermission = false
             systemNowPlayingMonitor.start()
             statusText = "Мониторю системный плеер (Control Center)…"
-            // Don't auto-request Accessibility permission - user can enable manually if needed
             yandexMonitor.stop()
         }
         retryPendingScrobbles()

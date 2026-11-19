@@ -15,7 +15,7 @@ final class LoggingFileManager: ObservableObject {
     static let shared = LoggingFileManager()
     
     private let logFileName = "YandexMusic.log"
-    private var logFileURL: URL?
+    @Published private var logFileURL: URL?
     private var isLoggingActive = false
     
     private init() {
