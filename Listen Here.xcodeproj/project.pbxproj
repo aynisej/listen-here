@@ -13,6 +13,9 @@
 		CADBA5E52F941D270063985A /* LastFmService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5E42F941D160063985A /* LastFmService.swift */; };
 		CADBA5E72F9422310063985A /* LastFMAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5E62F9422200063985A /* LastFMAPI.swift */; };
 		B11A00012F9600010063985A /* YandexMusicMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11A00022F9600010063985A /* YandexMusicMonitorService.swift */; };
+		CADBA5E82F941D2700063985A /* SystemNowPlayingMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5E72F941D2700063985A /* SystemNowPlayingMonitor.swift */; };
+		CADBA5E92F941D2700063985B /* LoggingFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5E82F941D2700063985C /* LoggingFileManager.swift */; };
+		CADBA5EA2F941D2700063985D /* ScrobblingMethod.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5EB2F941D2700063985E /* ScrobblingMethod.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,6 +45,9 @@
 		CADBA5E42F941D160063985A /* LastFmService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmService.swift; sourceTree = "<group>"; };
 		CADBA5E62F9422200063985A /* LastFMAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMAPI.swift; sourceTree = "<group>"; };
 		B11A00022F9600010063985A /* YandexMusicMonitorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YandexMusicMonitorService.swift; sourceTree = "<group>"; };
+		CADBA5E72F941D2700063985A /* SystemNowPlayingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNowPlayingMonitor.swift; sourceTree = "<group>"; };
+		CADBA5E82F941D2700063985C /* LoggingFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingFileManager.swift; sourceTree = "<group>"; };
+		CADBA5EB2F941D2700063985E /* ScrobblingMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobblingMethod.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -92,10 +98,13 @@
 			children = (
 				CADBA5E62F9422200063985A /* LastFMAPI.swift */,
 				B11A00022F9600010063985A /* YandexMusicMonitorService.swift */,
+				CADBA5E72F941D2700063985A /* SystemNowPlayingMonitor.swift */,
 				CADBA5E42F941D160063985A /* LastFmService.swift */,
 				CADBA5E22F94113F0063985A /* PlayerMonitorService.swift */,
 				CADBA5E02F940E5F0063985A /* Track.swift */,
 				CADBA5DE2F940AB40063985A /* AppState.swift */,
+				CADBA5EB2F941D2700063985E /* ScrobblingMethod.swift */,
+				CADBA5E82F941D2700063985C /* LoggingFileManager.swift */,
 				CADBA5B62F9407ED0063985A /* Listen Here */,
 				CADBA5C42F9407EF0063985A /* Listen HereTests */,
 				CADBA5CE2F9407EF0063985A /* Listen HereUITests */,
@@ -263,6 +272,9 @@
 				CADBA5E72F9422310063985A /* LastFMAPI.swift in Sources */,
 				B11A00012F9600010063985A /* YandexMusicMonitorService.swift in Sources */,
 				CADBA5E12F940E640063985A /* Track.swift in Sources */,
+				CADBA5EA2F941D2700063985D /* ScrobblingMethod.swift in Sources */,
+				CADBA5E92F941D2700063985B /* LoggingFileManager.swift in Sources */,
+				CADBA5E82F941D2700063985A /* SystemNowPlayingMonitor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
