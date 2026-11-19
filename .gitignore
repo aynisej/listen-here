@@ -1,2 +1,8 @@
 .build/
 DerivedData/
+Listen Here.app/
+*.dmg
+*.xcodeproj/xcuserdata/
+*.xcuserdatad/
+*.swp
+*~
