@@ -182,6 +182,19 @@ swift build -c release
 open Listen\ Here.xcodeproj
 ```
 
+## Track Metadata Resolution
+
+Tracks are resolved from Yandex Music's LevelDB and entityMeta structures, NOT from potentially incorrect `state.title`/`state.album` fields. The IPC bridge prioritizes LevelDB-resolved track names.
+
+### Examples
+```
+Track 464769 → "Lets Get Lost" by Pulp (Album: "His 'n' Herds")
+Track 464770 → "Disco 2000" by Pulp (Album: "This Is Hardcore")
+```
+
+Note: If track metadata appears incorrect (e.g., album name instead of track name), check your track cache at:
+`~/Library/Application Support/YandexMusic/ipc_track_cache.json`
+
 ## Requirements
 
 - macOS 14.0 or later

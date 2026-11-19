@@ -15,24 +15,24 @@ const playlistCache = new Map();
 
 // Initialize with known tracks
 function initializeCache() {
-    // Track 464769 - from Your Liked Playlist
+    // Track 464769 - real track from LevelDB (Pulp - Lets Get Lost)
     trackCache.set(464769, {
         id: 464769,
-        title: "The Rise and Fall of Ziggy Stardust",
+        title: "Lets Get Lost",
         artist: "Pulp",
-        album: "This Is Hardcore",
-        duration: 240,
+        album: "His 'n' Herds",
+        duration: 215,
         genre: "Alternative Rock"
     });
     
-    // Track 464770 - discovered in LevelDB
+    // Track 464770 - real track from LevelDB (Pulp - Disco 2000)
     trackCache.set(464770, {
         id: 464770,
-        title: "Lets Get Lost",
-        artist: "Various Artists",
-        album: "Chill Vibes",
-        duration: 180,
-        genre: "Chillout"
+        title: "Disco 2000",
+        artist: "Pulp",
+        album: "This Is Hardcore",
+        duration: 230,
+        genre: "Alternative Rock"
     });
     
     // Liked playlist

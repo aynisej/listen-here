@@ -126,30 +126,8 @@ import Foundation
             }
         }
         
-        // Also try simpler extraction for "The Rise and Fall of Ziggy Stardust" by Pulp pattern
-        // Found in log file - extract it directly
-        if text.contains("The Rise and Fall of Ziggy Stardust") {
-            tracks["464769"] = LevelDBTrack(
-                trackId: 464769,
-                title: "The Rise and Fall of Ziggy Stardust",
-                artist: "Pulp",
-                album: "This Is Hardcore",
-                duration: 240,
-                genre: "Alternative Rock"
-            )
-        }
-        
-        // Extract "Lets Get Lost" - found in the data
-        if text.contains("Lets Get Lost") {
-            tracks["464770"] = LevelDBTrack(
-                trackId: 464770,
-                title: "Lets Get Lost",
-                artist: "Various Artists",
-                album: "Chill Vibes",
-                duration: 180,
-                genre: "Chillout"
-            )
-        }
+        // Pattern matching extracts real track data from LevelDB
+        // Example format: "title":"Lets Get Lost","artist":{"name":"Pulp"}
         
         return tracks
     }
