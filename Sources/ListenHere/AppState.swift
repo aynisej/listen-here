@@ -30,6 +30,7 @@ final class AppState: ObservableObject {
     let lastFM = LastFmService.shared
 
     private let yandexMonitor = YandexMusicMonitorService()
+    private let ipcMonitor = YandexMusicIPCMonitorService()
     private let systemNowPlayingMonitor = SystemNowPlayingMonitor()
     private let legacyMonitor = PlayerMonitorService()
     private var loggingMonitor: YandexLoggingMonitorService?
@@ -77,6 +78,13 @@ final class AppState: ObservableObject {
             }
         }
 
+        ipcMonitor.setCallback { [weak self] result in
+            Task { @MainActor in
+                guard let self else { return }
+                self.receiveFromIPC(result)
+            }
+        }
+
         legacyMonitor.onTrackChange = { [weak self] track in
             guard let self, self.currentTrack == nil || self.activeIdentity == nil else { return }
             self.currentTrack = track
@@ -96,8 +104,9 @@ final class AppState: ObservableObject {
         Task { @MainActor in
             // Stop all first
             yandexMonitor.stop()
+            ipcMonitor.stop()
             loggingMonitor?.stop()
-            systemNowPlayingMonitor.stop()
+            systemNowPlayingMonitor.start()
             legacyMonitor.stop()
             await startMonitoring()
         }
@@ -167,6 +176,19 @@ final class AppState: ObservableObject {
             systemNowPlayingMonitor.start()
             statusText = "Мониторю системный плеер (Control Center)…"
             yandexMonitor.stop()
+            ipcMonitor.stop()
+
+        case .ipc:
+            needsAccessibilityPermission = false
+            if IPCScrobbleBridge.shared.hasIPCSupport {
+                ipcMonitor.start()
+                statusText = "Мониторю IPC-мост с модифицированной Яндекс Музыкой…"
+                yandexMonitor.stop()
+            } else {
+                ipcMonitor.stop()
+                statusText = "Модифицированная Яндекс Музыка не найдена. Установите расширение IPC-моста."
+            }
+            legacyMonitor.stop()
         }
         retryPendingScrobbles()
     }
@@ -347,6 +369,33 @@ final class AppState: ObservableObject {
         case .permissionDenied:
             self.isPlaying = false
             self.statusText = "Доступ к системному плееру запрещён"
+        }
+    }
+
+    /// Handle IPC monitor results
+    private func receiveFromIPC(_ result: IPCScrobbleResult) {
+        switch result {
+        case .track(let playback):
+            self.receive(YandexPlayback(
+                title: playback.title,
+                artist: playback.artist,
+                album: playback.album,
+                duration: playback.duration,
+                position: playback.position,
+                isPlaying: playback.isPlaying
+            ))
+            self.statusText = "Яндекс Музыка (IPC) · данные получены"
+        case .appNotRunning:
+            self.receive(nil)
+            self.isPlaying = false
+            self.statusText = "Яндекс Музыка не запущена"
+        case .connectionFailed:
+            self.receive(nil)
+            self.isPlaying = false
+            self.statusText = "Соединение IPC не удалось"
+        case .noData:
+            // Continue monitoring, don't report error
+            break
         }
     }
 }
