@@ -1,15 +1,46 @@
 #!/bin/bash
 # Installation script for Modified Yandex Music IPC Bridge
 # This script patches Yandex Music to include proper track metadata in IPC channel
+# 
+# Usage:
+#   ./install-modified-yandex-music.sh       # Install IPC bridge (modifies preload.js)
+#   ./install-modified-yandex-music.sh --uninstall  # Restore original files
 
 set -e
 
 YANDEX_MUSIC_APP="/Applications/Yandex Music.app"
 BACKUP_DIR="$HOME/Library/Application Support/YandexMusic/ipc-bridge-backup"
-IPC_BRIDGE_DIR="$(dirname "$0")"
+IPC_BRIDGE_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo "=== Yandex Music IPC Bridge Installer ==="
 echo ""
+
+# Handle uninstall
+if [ "$1" = "--uninstall" ]; then
+    echo "Uninstalling IPC bridge..."
+    
+    if [ -f "$BACKUP_DIR/preload.js.backup" ]; then
+        mkdir -p "$YANDEX_MUSIC_APP/Contents/Resources/"
+        cp "$BACKUP_DIR/preload.js.backup" "$YANDEX_MUSIC_APP/Contents/Resources/preload.js"
+        echo "Restored original preload.js"
+    else
+        # Try to remove our added files
+        if [ -f "$YANDEX_MUSIC_APP/Contents/Resources/preload.js" ]; then
+            rm -f "$YANDEX_MUSIC_APP/Contents/Resources/preload.js"
+            echo "Removed preload.js"
+        fi
+    fi
+    
+    if [ -f "$YANDEX_MUSIC_APP/Contents/Resources/ipc-bridge.dylib" ]; then
+        rm -f "$YANDEX_MUSIC_APP/Contents/Resources/ipc-bridge.dylib"
+        echo "Removed ipc-bridge.dylib"
+    fi
+    
+    echo ""
+    echo "=== Uninstall Complete ==="
+    echo "Please restart Yandex Music for changes to take effect."
+    exit 0
+fi
 
 # Check if Yandex Music is installed
 if [ ! -d "$YANDEX_MUSIC_APP" ]; then
@@ -23,85 +54,71 @@ echo "Found Yandex Music at $YANDEX_MUSIC_APP"
 # Create backup directory
 mkdir -p "$BACKUP_DIR"
 
-# Check if app.asar exists
-ASAR_PATH="$YANDEX_MUSIC_APP/Contents/Resources/app.asar"
-if [ ! -f "$ASAR_PATH" ]; then
-    echo "Error: app.asar not found at $ASAR_PATH"
-    echo "Yandex Music may have been updated or installed differently."
+# Check if modified-preload.js exists
+MODIFIED_PRELOAD="$IPC_BRIDGE_DIR/modified-preload.js"
+if [ ! -f "$MODIFIED_PRELOAD" ]; then
+    echo "Error: modified-preload.js not found in $IPC_BRIDGE_DIR"
+    echo "Please ensure you're running this script from the YandexMusicIPC directory."
     exit 1
 fi
 
-echo "Found app.asar"
+# Create Resources directory if it doesn't exist
+mkdir -p "$YANDEX_MUSIC_APP/Contents/Resources/"
 
-# Extract app.asar
-echo "Extracting app.asar..."
-TEMP_DIR=$(mktemp -d)
-npx @electron/asar extract "$ASAR_PATH" "$TEMP_DIR" || {
-    echo "Warning: npx not available, trying with node_modules..."
-    # Try with local electron ASAR if available
-}
-
-# Find the layout chunk file
-LAYOUT_FILE=$(find "$TEMP_DIR" -name "layout-*.js" -type f | head -1)
-if [ -z "$LAYOUT_FILE" ]; then
-    echo "Warning: Could not find layout chunk file"
-    rm -rf "$TEMP_DIR"
+# Backup original preload.js if it exists
+ORIGINAL_PRELOAD="$YANDEX_MUSIC_APP/Contents/Resources/preload.js"
+if [ -f "$ORIGINAL_PRELOAD" ]; then
+    cp "$ORIGINAL_PRELOAD" "$BACKUP_DIR/preload.js.backup"
+    echo "Backed up original preload.js"
 fi
 
-# Backup original files
-echo "Backing up original files..."
-cp "$ASAR_PATH" "$BACKUP_DIR/app.asar.backup"
+# Copy modified preload.js
+cp "$MODIFIED_PRELOAD" "$ORIGINAL_PRELOAD"
+chmod 644 "$ORIGINAL_PRELOAD"
+echo "Installed modified preload.js"
 
-# Apply patch for IPC bridge
-echo "Applying IPC bridge patch..."
-
-# Copy IPC bridge extension to Yandex Music
+# Compile and install IPC bridge dylib
 IPCBridge_DYLIB="$IPC_BRIDGE_DIR/ipc-bridge.dylib"
-if [ -f "$IPCBridge_DYLIB" ]; then
-    # Compile the dylib if source is available
-    if [ -f "$IPC_BRIDGE_DIR/ipc-bridge.dylib.c" ]; then
-        echo "Compiling ipc-bridge.dylib..."
-        clang -shared -fPIC -o "$IPCBridge_DYLIB" "$IPC_BRIDGE_DIR/ipc-bridge.dylib.c" -framework Foundation -framework CoreFoundation
-    fi
+IPCBridge_SRC="$IPC_BRIDGE_DIR/ipc-bridge.dylib.c"
+
+if [ -f "$IPCBridge_SRC" ]; then
+    echo "Compiling ipc-bridge.dylib..."
+    clang -shared -fPIC \
+        -install_name @rpath/ipc-bridge.dylib \
+        -o "$IPCBridge_DYLIB" \
+        "$IPCBridge_SRC" \
+        -framework Foundation \
+        -framework CoreFoundation \
+        -target $(arch -machines -x86_64) 2>/dev/null || \
+    clang -shared -fPIC \
+        -install_name @rpath/ipc-bridge.dylib \
+        -o "$IPCBridge_DYLIB" \
+        "$IPCBridge_SRC" \
+        -framework Foundation \
+        -framework CoreFoundation
     
     # Install the dylib
-    mkdir -p "$YANDEX_MUSIC_APP/Contents/Resources/"
     cp "$IPCBridge_DYLIB" "$YANDEX_MUSIC_APP/Contents/Resources/ipc-bridge.dylib"
     chmod 755 "$YANDEX_MUSIC_APP/Contents/Resources/ipc-bridge.dylib"
     echo "Installed ipc-bridge.dylib"
+elif [ -f "$IPCBridge_DYLIB" ]; then
+    cp "$IPCBridge_DYLIB" "$YANDEX_MUSIC_APP/Contents/Resources/ipc-bridge.dylib"
+    chmod 755 "$YANDEX_MUSIC_APP/Contents/Resources/ipc-bridge.dylib"
+    echo "Installed existing ipc-bridge.dylib"
+else
+    echo "Warning: No ipc-bridge.dylib found or compiled"
 fi
 
-# Inject patch into layout file if found
-if [ -n "$LAYOUT_FILE" ] && [ -f "$LAYOUT_FILE" ]; then
-    echo "Patching layout file..."
-    
-    # Create patch file
-    PATCH_FILE="$IPC_BRIDGE_DIR/layout-patch.txt"
-    
-    # The actual patch would go here - for now we'll create a separate injection
-    cp "$LAYOUT_FILE" "$BACKUP_DIR/layout-original.js"
-    
-    # For demonstration, we'll create a modified version
-    # In production, this would properly patch the file
-    echo "// IPC Bridge patch applied" >> "$LAYOUT_FILE"
-    echo "// Track metadata extraction added" >> "$LAYOUT_FILE"
+# Ensure track cache directory exists
+TRACK_CACHE_DIR="$HOME/Library/Application Support/YandexMusic"
+mkdir -p "$TRACK_CACHE_DIR"
+
+# Copy track cache if not exists
+TRACK_CACHE="$IPC_BRIDGE_DIR/track_cache.json"
+if [ -f "$TRACK_CACHE" ] && [ ! -f "$TRACK_CACHE_DIR/ipc_track_cache.json" ]; then
+    cp "$TRACK_CACHE" "$TRACK_CACHE_DIR/ipc_track_cache.json"
+    echo "Installed track cache"
 fi
-
-# Add preload script if it doesn't exist
-PRELOAD_PATH="$YANDEX_MUSIC_APP/Contents/Resources/preload.js"
-if [ ! -f "$PRELOAD_PATH" ]; then
-    cp "$IPC_BRIDGE_DIR/preload.js" "$YANDEX_MUSIC_APP/Contents/Resources/preload.js"
-    echo "Installed preload.js"
-fi
-
-# Rebuild app.asar
-echo "Rebuilding app.asar..."
-npx @electron/asar pack "$TEMP_DIR" "$ASAR_PATH.new"
-mv "$ASAR_PATH" "$ASAR_PATH.original"
-mv "$ASAR_PATH.new" "$ASAR_PATH"
-
-# Clean up temp directory
-rm -rf "$TEMP_DIR"
 
 echo ""
 echo "=== Installation Complete ==="
@@ -109,7 +126,6 @@ echo ""
 echo "The modified Yandex Music now includes IPC bridge support."
 echo "Please restart Yandex Music for changes to take effect."
 echo ""
-echo "To uninstall, run the uninstall script or restore the backup:"
-echo "  cp $BACKUP_DIR/app.asar.backup $ASAR_PATH"
+echo "In Listen Here, select 'IPC' mode for best track metadata resolution."
 echo ""
-echo "Listen Here will automatically detect the modified Yandex Music and use IPC mode."
+echo "Backup files are stored at: $BACKUP_DIR"

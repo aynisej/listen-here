@@ -4,7 +4,7 @@ Listen Here is a macOS Last.fm scrobbler with a native SwiftUI interface. It rea
 
 ## Scrobbling Methods
 
-Listen Here supports three scrobbling methods, selectable in the Settings panel:
+Listen Here supports four scrobbling methods, selectable in the Settings panel:
 
 ### 1. System Now Playing (Recommended for Yandex Music via AirPlay/Bluetooth/Wi-Fi)
 
@@ -57,6 +57,25 @@ A fallback mechanism that parses system logs or log files from Yandex Music.
 - May not work if Yandex Music doesn't emit track events to logs
 - Requires Yandex Music to use structured logging
 
+### 4. IPC Bridge (Best for Yandex Music with Modified Client)
+
+The most accurate method, providing proper track metadata (title, artist, not just trackId numbers). Requires installing a modified Yandex Music client.
+
+**How it works:**
+- Uses a modified preload script that intercepts Yandex Music's internal state
+- Reads track metadata from LevelDB and entityMeta structures
+- Writes state to `player_state.json` for ListenHere to read
+- Provides real-time track information with proper naming
+
+**Pros:**
+- Provides accurate track names (not trackId numbers)
+- Resolves artist and album correctly
+- Works with Yandex Music's internal state
+
+**Cons:**
+- Requires modified Yandex Music client installation
+- May need reinstallation after Yandex Music updates
+
 ## Enabling Logging Mode
 
 To enable logging-based monitoring:
@@ -87,9 +106,45 @@ To enable Yandex Music scrobbling:
    - **System Now Playing** - for AirPlay/Bluetooth/Wi-Fi playback
    - **Accessibility** - for desktop app playback (may require permission)
    - **Logging** - fallback method for when others fail
+   - **IPC** - for modified Yandex Music with accurate track names
 
 For Accessibility method:
 4. Allow Listen Here under **System Settings → Privacy & Security → Accessibility**
+
+### Installing IPC Mode (Modified Yandex Music)
+
+For the most accurate track metadata, install the modified Yandex Music IPC bridge:
+
+1. **Backup your Yandex Music app:**
+   ```bash
+   cp -R "/Applications/Yandex Music.app" "/Applications/Yandex Music.app.backup"
+   ```
+
+2. **Install the modified client:**
+   ```bash
+   cd /path/to/YandexMusicIPC
+   chmod +x install-modified-yandex-music.sh
+   ./install-modified-yandex-music.sh
+   ```
+
+3. **Restart Yandex Music** for changes to take effect
+
+4. **Select "IPC" mode** in Listen Here's Settings
+
+5. **Verify installation** - Play a track in Yandex Music and check for "Яндекс Музыка (IPC) · данные получены" in Listen Here's status
+
+**Uninstalling the modified client:**
+```bash
+# Restore from backup
+rm -rf "/Applications/Yandex Music.app"
+mv "/Applications/Yandex Music.app.backup" "/Applications/Yandex Music.app"
+```
+
+Or run:
+```bash
+cd /path/to/YandexMusicIPC
+./install-modified-yandex-music.sh --uninstall
+```
 
 ## Scrobbling Behavior
 
