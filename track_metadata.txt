@@ -1,0 +1,34 @@
+# Track Metadata for Listen Here IPC Bridge
+
+## Track IDs and Names
+
+464769 → "Lets Get Lost" by Pulp (Album: "His 'n' Herds")
+464770 → "Disco 2000" by Pulp (Album: "This Is Hardcore")
+
+## Cache File Location
+
+~/Library/Application Support/YandexMusic/ipc_track_cache.json
+
+## How to Update Cache
+
+The cache file is automatically created at:
+~/Library/Application Support/YandexMusic/ipc_track_cache.json
+
+To add more track mappings, edit this JSON file:
+{
+  "tracks": {
+    "TRACK_ID": {
+      "title": "Track Title",
+      "artist": "Artist Name",
+      "album": "Album Name",
+      "duration": 180,
+      "genre": "Genre"
+    }
+  }
+}
+
+## Finding Track IDs
+
+1. Open Yandex Music desktop app
+2. Right-click on the track → Share → Copy track ID
+3. Add the track ID and metadata to the cache
