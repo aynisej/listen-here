@@ -9,10 +9,13 @@ import Foundation
 
 final class PlayerMonitorService {
     private let center = DistributedNotificationCenter.default()
+    private var isRunning = false
 
     var onTrackChange: ((Track) -> Void)?
 
     func start() {
+        guard !isRunning else { return }
+        isRunning = true
         // Apple Music
         center.addObserver(
             self,
@@ -28,6 +31,12 @@ final class PlayerMonitorService {
             name: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
             object: nil
         )
+    }
+
+    func stop() {
+        guard isRunning else { return }
+        center.removeObserver(self)
+        isRunning = false
     }
 
     @objc private func handleMusic(_ notification: Notification) {

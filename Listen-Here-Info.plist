@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSAccessibilityUsageDescription</key>
+	<string>Listen Here читает данные плеера Яндекс Музыки, чтобы отправлять прослушанные треки в Last.fm.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

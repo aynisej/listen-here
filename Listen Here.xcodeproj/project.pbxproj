@@ -12,6 +12,7 @@
 		CADBA5E32F94114C0063985A /* PlayerMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5E22F94113F0063985A /* PlayerMonitorService.swift */; };
 		CADBA5E52F941D270063985A /* LastFmService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5E42F941D160063985A /* LastFmService.swift */; };
 		CADBA5E72F9422310063985A /* LastFMAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADBA5E62F9422200063985A /* LastFMAPI.swift */; };
+		B11A00012F9600010063985A /* YandexMusicMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11A00022F9600010063985A /* YandexMusicMonitorService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +41,7 @@
 		CADBA5E22F94113F0063985A /* PlayerMonitorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerMonitorService.swift; sourceTree = "<group>"; };
 		CADBA5E42F941D160063985A /* LastFmService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFmService.swift; sourceTree = "<group>"; };
 		CADBA5E62F9422200063985A /* LastFMAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMAPI.swift; sourceTree = "<group>"; };
+		B11A00022F9600010063985A /* YandexMusicMonitorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YandexMusicMonitorService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -89,6 +91,7 @@
 			isa = PBXGroup;
 			children = (
 				CADBA5E62F9422200063985A /* LastFMAPI.swift */,
+				B11A00022F9600010063985A /* YandexMusicMonitorService.swift */,
 				CADBA5E42F941D160063985A /* LastFmService.swift */,
 				CADBA5E22F94113F0063985A /* PlayerMonitorService.swift */,
 				CADBA5E02F940E5F0063985A /* Track.swift */,
@@ -258,6 +261,7 @@
 				CADBA5E52F941D270063985A /* LastFmService.swift in Sources */,
 				CADBA5E32F94114C0063985A /* PlayerMonitorService.swift in Sources */,
 				CADBA5E72F9422310063985A /* LastFMAPI.swift in Sources */,
+				B11A00012F9600010063985A /* YandexMusicMonitorService.swift in Sources */,
 				CADBA5E12F940E640063985A /* Track.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -421,7 +425,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = C4PV6RRM6Z;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -464,7 +468,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = C4PV6RRM6Z;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;

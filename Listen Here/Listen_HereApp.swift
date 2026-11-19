@@ -9,5 +9,13 @@ struct Listen_HereApp: App {
             ContentView()
                 .environmentObject(appState)
         }
+        .defaultSize(width: 980, height: 720)
+
+        Window("Вход в Last.fm", id: "lastfm-login") {
+            LoginWindowView()
+                .environmentObject(appState)
+        }
+        .defaultSize(width: 420, height: 480)
+        .windowResizability(.contentSize)
     }
 }
