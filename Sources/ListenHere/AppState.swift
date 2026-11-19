@@ -137,17 +137,13 @@ final class AppState: ObservableObject {
         case .accessibility:
             if !YandexMusicMonitorService.hasAccessibilityPermission {
                 needsAccessibilityPermission = true
-                _ = YandexMusicMonitorService.requestAccessibilityPermission()
-                statusText = "Проверяю доступ к окну Яндекс Музыки…"
+                // Don't auto-request permission - wait for user to request it
+                statusText = "Доступ к окну Яндекс Музыки заблокирован. Нажмите кнопку «Разрешить» в настройках."
             } else {
                 needsAccessibilityPermission = false
-            }
-            legacyMonitor.start()
-            yandexMonitor.start()
-            if YandexMusicMonitorService.hasAccessibilityPermission {
                 statusText = "Ищу Яндекс Музыку (через Accessibility)…"
-            } else {
-                statusText = "Доступ к окну Яндекс Музыки заблокирован"
+                legacyMonitor.start()
+                yandexMonitor.start()
             }
             LoggingFileManager.shared.stopLogging()
 
@@ -173,10 +169,8 @@ final class AppState: ObservableObject {
             needsAccessibilityPermission = false
             systemNowPlayingMonitor.start()
             statusText = "Мониторю системный плеер (Control Center)…"
-            if !YandexMusicMonitorService.hasAccessibilityPermission {
-                _ = YandexMusicMonitorService.requestAccessibilityPermission()
-            }
-            yandexMonitor.start()
+            // Don't auto-request Accessibility permission - user can enable manually if needed
+            yandexMonitor.stop()
         }
         retryPendingScrobbles()
     }

@@ -196,11 +196,14 @@ final class YandexMusicMonitorService {
     private var callback: YandexMonitorCallback?
     private var timer: Timer?
     private let lock = NSLock()
-    
+
     static var hasAccessibilityPermission: Bool { AXIsProcessTrusted() }
 
+    /// Request Accessibility permission. Returns whether the app is already trusted.
     static func requestAccessibilityPermission() -> Bool {
-        return AXIsProcessTrustedWithOptions(["kAXTrustedCheckOptionPrompt": true] as CFDictionary)
+        // Always return current trust status - the system will prompt automatically
+        // when Accessibility APIs are first used, if needed.
+        return AXIsProcessTrusted()
     }
 
     func setCallback(_ callback: @escaping YandexMonitorCallback) {
