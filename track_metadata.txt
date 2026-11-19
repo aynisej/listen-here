@@ -2,7 +2,7 @@
 
 ## Track IDs and Names
 
-464769 → "Lets Get Lost" by Pulp (Album: "His 'n' Herds")
+464769 → "Lets Get Lost" by Chat Baker (Album: "His 'n' Herds")
 464770 → "Disco 2000" by Pulp (Album: "This Is Hardcore")
 
 ## Cache File Location

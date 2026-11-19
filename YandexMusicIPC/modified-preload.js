@@ -15,11 +15,11 @@ const playlistCache = new Map();
 
 // Initialize with known tracks
 function initializeCache() {
-    // Track 464769 - real track from LevelDB (Pulp - Lets Get Lost)
+    // Track 464769 - real track from LevelDB (Chat Baker - Lets Get Lost)
     trackCache.set(464769, {
         id: 464769,
         title: "Lets Get Lost",
-        artist: "Pulp",
+        artist: "Chat Baker",
         album: "His 'n' Herds",
         duration: 215,
         genre: "Alternative Rock"

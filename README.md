@@ -84,7 +84,7 @@ Tracks are resolved from Yandex Music's LevelDB and entityMeta structures, NOT f
 ### Known Track Mappings
 
 ```
-Track 464769 → "Lets Get Lost" by Pulp (Album: "His 'n' Herds")
+Track 464769 → "Lets Get Lost" by Chat Baker (Album: "His 'n' Herds")
 Track 464770 → "Disco 2000" by Pulp (Album: "This Is Hardcore")
 ```
 
